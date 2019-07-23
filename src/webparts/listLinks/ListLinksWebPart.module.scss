@@ -1,0 +1,60 @@
+@import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
+
+.listLinks {
+  .container {
+    max-width: 700px;
+    margin: 0px auto;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 5px 10px 0 rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    &:hover img {
+      transform: scale(1.25);
+    }
+  }
+  .title {
+    @include ms-font-xxl;
+    // @include ms-fontColor-white;
+    font-weight: 400;
+    text-align: center;
+  }
+  .status {
+    color: $ms-color-alert;
+  }
+  .center {
+    text-align: center;
+  }
+  img {
+    max-height: 60px;
+    max-width: 80%;
+    border-radius: 10px;
+    transition: transform .5s;
+  }
+  ul {
+    @include ms-font-l;
+    padding: 0;
+    li {
+      list-style-type: none;
+      padding: 2px 0;
+      &::before {
+        content: "\2022";
+        color: #B1B1B3;
+        font-weight: bold;
+        float: left;
+        line-height: 0;
+        font-size: 18pt;
+        margin-top: 0.375em;
+        width: 0;
+      }
+      a {
+        color: $ms-color-themePrimary;
+        font-weight: 400;
+        padding-left: 0.9em;
+        display: inline-block;
+        &:hover {
+          color: $ms-color-themeDarker;
+        }
+      }
+    }
+  }
+}
