@@ -1,6 +1,7 @@
 ## sp-list-links-wp
 
-This is where you include your WebPart documentation.
+A webpart to show links from a custom list. Optionally filter the links based on a text field.
+![alt text](screenshot.png "Screenshot")
 
 ### Building the code
 
