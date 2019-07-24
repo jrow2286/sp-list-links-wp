@@ -8,6 +8,8 @@ declare interface IListLinksWebPartStrings {
   HyperlinkFieldFieldLabel: string;
   CategoryFieldFieldLabel: string;
   CategoryValueFieldLabel: string;
+  OrderbyValueFieldLabel: string;
+  OrderbyAscFieldLabel: string;
 }
 
 declare module 'ListLinksWebPartStrings' {

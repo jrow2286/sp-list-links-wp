@@ -8,6 +8,8 @@ define([], function() {
     "ListNameFieldLabel": "Links List",
     "HyperlinkFieldFieldLabel": "Hyperlink Field",
     "CategoryFieldFieldLabel": "Filter Links By This Field",
-    "CategoryValueFieldLabel": "Filter Links By This Value"
+    "CategoryValueFieldLabel": "Filter Links By This Value",
+    "OrderbyValueFieldLabel": "Order By This Field",
+    "OrderbyAscFieldLabel": "Order Direction"
   }
 });

@@ -3,7 +3,8 @@ import { BaseClientSideWebPart, IPropertyPaneDropdownOption } from '@microsoft/s
 import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField,
-  PropertyPaneDropdown
+  PropertyPaneDropdown,
+  PropertyPaneToggle
 } from '@microsoft/sp-property-pane';
 import { escape } from '@microsoft/sp-lodash-subset';
 
@@ -20,6 +21,8 @@ export interface IListLinksWebPartProps {
   hyperlinkField: string;
   categoryField: string;
   categoryValue: string;
+  orderbyField: string;
+  orderbyAsc: boolean;
 }
 
 interface IListItem {
@@ -45,6 +48,9 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
 
   private categoryValues: IPropertyPaneDropdownOption[];
   private categoryValueDropdownDisabled: boolean = true;
+
+  private orderbyFields: IPropertyPaneDropdownOption[];
+  private orderbyFieldDropdownDisabled: boolean = true;
 
   protected onInit(): Promise<void> {
     return new Promise<void>((resolve: () => void, reject: (error?: any) => void): void => {
@@ -101,14 +107,14 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
     });
   }
 
-  private loadFieldsByType(fieldType: string): Promise<IPropertyPaneDropdownOption[]> {
+  private loadFieldsByType(fieldType: string, filterStr?: string): Promise<IPropertyPaneDropdownOption[]> {
     if (!this.properties.listName) {
       return Promise.resolve();
     }
-
+    let filter = filterStr || "ReadOnlyField eq false and TypeAsString eq '" + fieldType + "'";
     return new Promise<IPropertyPaneDropdownOption[]>((resolve: (options: IPropertyPaneDropdownOption[]) => void, reject: (error: any) => void) => {
       sp.web.lists.getByTitle(this.properties.listName).fields
-      .filter("ReadOnlyField eq false and TypeAsString eq '" + fieldType + "'").select("InternalName,Title").get()
+      .filter(filter).select("InternalName,Title").get()
       .then((data): void => {
         resolve(
           data.map(item => {
@@ -151,8 +157,10 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
       if(this.properties.categoryField && this.properties.categoryValue){
         filter = this.properties.categoryField + " eq '" + this.properties.categoryValue + "'";
       }
+      console.log(this.properties.orderbyAsc);
       sp.web.lists.getByTitle(this.properties.listName)
-      .items.filter(filter).select(this.properties.hyperlinkField).get()
+      .items.filter(filter).select(this.properties.hyperlinkField)
+      .orderBy(this.properties.orderbyField || "ID", this.properties.orderbyAsc).get()
       .then((items: IListItem[]): void => {
         this.updateLinkItemsHtml(items);
       }, (error: any): void => {
@@ -211,6 +219,13 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
       this.hyperlinkFieldDropdownDisabled = !this.properties.listName;
       this.context.propertyPane.refresh();
       this.render();
+      return this.loadFieldsByType("*", "Hidden eq false and Sortable eq true");
+    })
+    .then((orderbyOptions: IPropertyPaneDropdownOption[]): Promise<IPropertyPaneDropdownOption[]> => {
+      this.orderbyFields = orderbyOptions;
+      this.orderbyFieldDropdownDisabled = !this.properties.listName;
+      this.context.propertyPane.refresh();
+      this.render();
       return this.loadFieldsByType("Text");
     })
     .then((categoryFieldOptions: IPropertyPaneDropdownOption[]): Promise<IPropertyPaneDropdownOption[]> => {
@@ -236,6 +251,11 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
       this.onPropertyPaneFieldChanged('hyperlinkField', previousHyperlinkField, this.properties.hyperlinkField);
       this.hyperlinkFieldDropdownDisabled = true;
 
+      const previousOrderbyField: string = this.properties.orderbyField;
+      this.properties.orderbyField = undefined;
+      this.onPropertyPaneFieldChanged('orderbyField', previousOrderbyField, this.properties.orderbyField);
+      this.orderbyFieldDropdownDisabled = true;
+
       const previousCategoryField: string = this.properties.categoryField;
       this.properties.categoryField = undefined;
       this.onPropertyPaneFieldChanged('categoryField', previousCategoryField, this.properties.categoryField);
@@ -254,6 +274,13 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
         this.hyperlinkFieldDropdownDisabled = false;
         this.render();
         this.context.propertyPane.refresh();
+        return this.loadFieldsByType("*", "Hidden eq false and Sortable eq true");
+      })
+      .then((orderbyFieldOptions: IPropertyPaneDropdownOption[]): Promise<IPropertyPaneDropdownOption[]> => {
+        this.orderbyFields = orderbyFieldOptions;
+        this.orderbyFieldDropdownDisabled = false;
+        this.render();
+        this.context.propertyPane.refresh();
         return this.loadFieldsByType("Text");
       })
       .then((categoryFieldOptions: IPropertyPaneDropdownOption[]): Promise<IPropertyPaneDropdownOption[]> => {
@@ -269,7 +296,7 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
         this.render();
         this.context.propertyPane.refresh();
       });
-    } else if (propertyPath === 'categoryField' && newValue){
+    } else if (propertyPath === 'categoryField' && newValue) {
       const previousCategoryValue: string = this.properties.categoryValue;
       this.properties.categoryValue = undefined;
       this.onPropertyPaneFieldChanged('categoryValue', previousCategoryValue, this.properties.categoryValue);
@@ -285,6 +312,8 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
         this.render();
         this.context.propertyPane.refresh();
       });
+    } else if (propertyPath === 'orderbyAscField') {
+      this.properties.orderbyAsc = newValue;
     }
   }
 
@@ -329,6 +358,17 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
                   label: strings.CategoryValueFieldLabel,
                   options: this.categoryValues,
                   disabled: this.categoryValueDropdownDisabled
+                }),
+                PropertyPaneDropdown('orderbyField', {
+                  label: strings.OrderbyValueFieldLabel,
+                  options: this.orderbyFields,
+                  disabled: this.orderbyFieldDropdownDisabled
+                }),
+                PropertyPaneToggle('orderbyAscField', {
+                  label: strings.OrderbyAscFieldLabel,
+                  checked: this.properties.orderbyAsc,
+                  onText: "Ascending",
+                  offText: "Descending"
                 })
               ]
             }
