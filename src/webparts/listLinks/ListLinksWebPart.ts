@@ -54,6 +54,11 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
 
   protected onInit(): Promise<void> {
     return new Promise<void>((resolve: () => void, reject: (error?: any) => void): void => {
+      console.log('orderbyAsc', this.properties.orderbyAsc);
+      if (this.properties.orderbyAsc === undefined) {
+        console.log('orderbyAsc setting to true');
+        this.properties.orderbyAsc = true;
+      }
       sp.setup({
         spfxContext: this.context,
         sp: {
@@ -157,7 +162,7 @@ export default class ListLinksWebPart extends BaseClientSideWebPart<IListLinksWe
       if(this.properties.categoryField && this.properties.categoryValue){
         filter = this.properties.categoryField + " eq '" + this.properties.categoryValue + "'";
       }
-      console.log(this.properties.orderbyAsc);
+      
       sp.web.lists.getByTitle(this.properties.listName)
       .items.filter(filter).select(this.properties.hyperlinkField)
       .orderBy(this.properties.orderbyField || "ID", this.properties.orderbyAsc).get()

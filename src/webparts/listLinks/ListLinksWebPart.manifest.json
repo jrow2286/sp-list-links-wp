@@ -27,7 +27,8 @@
       "hyperlinkField": "",
       "categoryField": "",
       "categoryValue": "",
-      "orderbyField": ""
+      "orderbyField": "ID",
+      "orderbyAsc": true
     }
   }]
 }
